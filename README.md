@@ -1,24 +1,38 @@
-# Custom server with TypeScript + Nodemon example
+## next-js-api-body-body
 
-The example shows how you can use [TypeScript](https://typescriptlang.com) on both the server and the client while using [Nodemon](https://nodemon.io/) to live reload the server code without affecting the Next.js universal code.
+Sample repo to reproduce the request body consumption issue described here:
 
-Server entry point is `server.ts` in development and `dist/server.js` in production.
-The `dist` directory should be added to `.gitignore`.
+https://github.com/vercel/next.js/issues/24894
 
-## Deploy your own
+## Repro Steps
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example) or preview live with [StackBlitz](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/custom-server)
+1. Clone this repo
+2. Run `npm install` (Node v16)
+3. Run `npm run dev`
+4. Run this command:
+    - `curl -v -POST -H "Content-Type: application/json" -d '{"ping":true}' http://localhost:3000/api/test`
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/custom-server)
+You should see a `400 Invalid Body` response like the following:
 
-## How to use
-
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
-
-```bash
-npx create-next-app --example custom-server custom-server-app
-# or
-yarn create next-app --example custom-server custom-server-app
-# or
-pnpm create next-app --example custom-server custom-server-app
 ```
+*   Trying 127.0.0.1:3000...
+* Connected to localhost (127.0.0.1) port 3000 (#0)
+> POST /api/test HTTP/1.1
+> Host: localhost:3000
+> User-Agent: curl/7.84.0
+> Accept: */*
+> Content-Type: application/json
+> Content-Length: 13
+>
+* Mark bundle as not supporting multiuse
+< HTTP/1.1 400 Invalid body
+< Date: Wed, 14 Dec 2022 13:19:46 GMT
+< Connection: keep-alive
+< Keep-Alive: timeout=72
+< Transfer-Encoding: chunked
+<
+* Connection #0 to host localhost left intact
+Invalid body%  
+```
+
+Uncomment the no-op content parser in `server.ts` to work around the issue.
